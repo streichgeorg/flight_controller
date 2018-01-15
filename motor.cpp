@@ -26,3 +26,10 @@ void write_motors(float motor_0, float motor_1, float motor_2, float motor_3) {
     analogWrite(MOTOR_2_PIN, (int) fmap(motor_2, 0.0, 1.0, PWM_MIN, PWM_MAX));
     analogWrite(MOTOR_3_PIN, (int) fmap(motor_0, 0.0, 1.0, PWM_MIN, PWM_MAX));
 }
+
+void write_motors_raw(int motor_0, int motor_1, int motor_2, int motor_3) {
+    analogWrite(MOTOR_0_PIN, motor_0);
+    analogWrite(MOTOR_1_PIN, motor_1);
+    analogWrite(MOTOR_2_PIN, motor_2);
+    analogWrite(MOTOR_3_PIN, motor_3);
+}

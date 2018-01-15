@@ -1,10 +1,10 @@
 #include "leds.hpp"
 
+#include "config.hpp"
 #include "state.hpp"
 
 #include <Arduino.h>
 
-const int NUM_LEDS = 1;
 
 enum Led_Mode {
     DISABLED,
@@ -33,12 +33,31 @@ Led* init_led(int pin, Led_Mode mode, float freq) {
 }
 
 Led *status_led;
+Led *arm_led;
 void init_leds() {
-    status_led = init_led(13, BLINKING, 3.5);
+    status_led = init_led(STATUS_LED, ENABLED, 3.5);
+    arm_led = init_led(ARM_LED, DISABLED, 3.5);
 }
 
 void update_leds() {
-    status_led->mode = (finished_initialization && succesful_initialization) ? BLINKING : DISABLED;
+    if (finished_initialization && succesful_initialization) {
+        if (started_up) {
+            status_led->mode = ENABLED;
+        } else {
+            status_led->mode = BLINKING;
+        }
+    } else {
+        status_led->mode = DISABLED;
+    }
+
+    if (arming) {
+        arm_led->mode = BLINKING;
+    } else if (armed) {
+        arm_led->mode = ENABLED;
+    } else {
+        arm_led->mode = DISABLED;
+    }
+
 
     for (int i = 0; i < led_count; i++) {
         Led &led = leds[i];

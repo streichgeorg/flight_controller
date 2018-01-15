@@ -1,6 +1,7 @@
 #include "kinematics.hpp"
 
 #include "state.hpp"
+#include "ahrs.hpp"
 #include "math.hpp"
 
 #include <Arduino.h>
