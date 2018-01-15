@@ -3,7 +3,6 @@
 #include "config.hpp"
 #include "math.hpp"
 
-#include <Servo.h>
 #include <Arduino.h>
 
 void init_motor(int pin) {
