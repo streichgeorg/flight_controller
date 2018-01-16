@@ -1,4 +1,5 @@
 #include "config.hpp"
+#include "common.hpp"
 #include "state.hpp"
 #include "leds.hpp"
 #include "sensor.hpp"
@@ -9,41 +10,26 @@
 #include "math.hpp"
 
 void setup() {
-    #ifdef DEBUG
-        Serial.begin(9600);
-    #endif
-
     succesful_initialization = true;
 
     init_leds();
-
-    if (!init_sensors()) {
-        #ifdef DEBUG
-            Serial.println("Failed to initialize sensor");
-        #endif
-
-        succesful_initialization = false;
-    }
-
+    init_motors();
     init_rc_receiver();
 
-    if (!init_xbee_link()) {
-        #ifdef DEBUG
-            Serial.println("Failed to initialize xbee link");
-        #endif
+    has_xbee_link = init_xbee_link();
 
+    if (!init_sensors()) {
+        debug("Failed to initialize sensor");
         succesful_initialization = false;
     }
 
-    init_motors();
+    if (succesful_initialization) {
+        debug("Initialization was succesful");
+    } else {
+        debug("Initialization was not succesful");
+    }
 
-    #ifdef DEBUG
-        if (succesful_initialization) {
-            Serial.println("Initialization was succesful");
-        } else {
-            Serial.println("Initialization was not succesful");
-        }
-    #endif
+    send_flight_info();
 
     finished_initialization = true;
 
@@ -57,13 +43,17 @@ void begin_arm() {
 
 void loop() {
     update_leds();
-    update_kinematics();
 
     if (!succesful_initialization) {
         return;
     }
 
-    update_xbee_link();
+    update_imu_values();
+    update_kinematics();
+
+    if (has_xbee_link) {
+        update_xbee_link();
+    }
 
     if (!started_up && millis() - start_up_begin_ms > STARTUP_TIME_S * 1000) {
         started_up = true;
@@ -76,6 +66,4 @@ void loop() {
     if (arming && millis() - arm_begin_ms > ARM_DELAY_S * 1000) {
         arming = false;
     }
-
-    float throttle = fmap(throttle_channel->value, 1000, 2000, 0.0, 1.0);
 }

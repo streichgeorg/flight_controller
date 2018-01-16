@@ -2,6 +2,8 @@
 
 #define DEBUG
 
+#define VERSION 1
+
 #define NUM_LEDS 2
 #define STATUS_LED 13
 #define ARM_LED -1
@@ -39,6 +41,11 @@ const int RC_CHANNEL_PINS[NUM_RC_CHANNELS] = {
 #define STARTUP_TIME_S 2
 #define ARM_DELAY_S 3
 
+#define TELEMETRY_FREQ_HZ 10
+
 #define PWM_RESOLUTION 11
 #define PWM_MAX 2048
 #define PWM_MIN 1024
+
+#define GYRO_CALIBRATION_SAMPLES 1000
+#define GYRO_RANGE_DEG 250
