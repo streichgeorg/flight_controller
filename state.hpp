@@ -13,7 +13,6 @@ extern float arm_begin_ms;
 extern bool armed;
 
 struct vec3;
-extern int gyro_offset_pitch, gyro_offset_roll, gyro_offset_yaw;
 extern vec3 raw_gyro_rad_s;
 extern vec3 raw_accel;
 

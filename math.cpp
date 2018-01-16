@@ -123,9 +123,9 @@ quat quat::from_axis_angle(float angle, vec3 &axis) {
 
 void quat::mul(quat &other, quat &out) {
     out.q0 = q0 * other.q0 - q1 * other.q1 - q2 * other.q2 - q3 * other.q3;
-    out.q1 = q0 * other.q1 + q1 * other.q0 + q2 * other.q3 - q3 * other.q2;
+    out.q1 = q0 * other.q1 + q1 * other.q0 - q2 * other.q3 + q3 * other.q2;
     out.q2 = q0 * other.q2 + q1 * other.q3 + q2 * other.q0 - q3 * other.q1;
-    out.q3 = q0 * other.q3 + q1 * other.q2 + q2 * other.q1 - q3 * other.q0;
+    out.q3 = q0 * other.q3 - q1 * other.q2 + q2 * other.q1 + q3 * other.q0;
 }
 
 void quat::mul(quat &other) {
@@ -135,6 +135,21 @@ void quat::mul(quat &other) {
 quat quat::rmul(quat &other) {
     quat out;
     mul(other, out);
+    return out;
+}
+
+void quat::mul(vec3 v, vec3 &out) {
+    vec3 u = vec3(q1, q2, q3);
+    float s = q0;
+
+    u.mul(2.0 * u.dot(v), out);
+    out.add(v.rmul(s * s - u.dot(u)));
+    out.add(u.rcross(v).rmul(2.0 * s));
+}
+
+vec3 quat::rmul(vec3 v) {
+    vec3 out;
+    mul(v, out);
     return out;
 }
 

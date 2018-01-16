@@ -1,6 +1,7 @@
 #pragma once
 
 #define DEBUG
+#define TIME
 
 #define VERSION 1
 
@@ -41,11 +42,26 @@ const int RC_CHANNEL_PINS[NUM_RC_CHANNELS] = {
 #define STARTUP_TIME_S 2
 #define ARM_DELAY_S 3
 
-#define TELEMETRY_FREQ_HZ 10
+#define TASK_1000HZ 1
+#define TASK_250HZ 4
+#define TASK_100HZ 10
+#define TASK_50HZ 20
+#define TASK_10HZ 100
+#define TELEMETRY_FREQ_HZ 100
 
 #define PWM_RESOLUTION 11
 #define PWM_MAX 2048
 #define PWM_MIN 1024
 
-#define GYRO_CALIBRATION_SAMPLES 1000
+#define ACCEL_OFFSET_X -5121
+#define ACCEL_OFFSET_Y -1168
+#define ACCEL_OFFSET_Z 1082
+#define GYRO_OFFSET_X 80
+#define GYRO_OFFSET_Y -38
+#define GYRO_OFFSET_Z 62
+
 #define GYRO_RANGE_DEG 250
+
+#define ACCEL_WEIGHT 0.05
+#define GYRO_WEIGHT 0.95
+#define ACCEL_1G 16384

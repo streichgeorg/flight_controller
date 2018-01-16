@@ -48,8 +48,30 @@ void loop() {
         return;
     }
 
+    #ifdef TIME
+        int start_imu_update_us = micros();
+    #endif
     update_imu_values();
+    #ifdef TIME
+        {
+            char debug_str[30];
+            sprintf(debug_str, "IMU update took %d us", micros() - start_imu_update_us);
+            debug(debug_str);
+        }
+    #endif
+
+    #ifdef TIME
+        int start_kinematics_update_us = micros();
+    #endif
     update_kinematics();
+    #ifdef TIME
+        {
+            char debug_str[30];
+            sprintf(debug_str, "Kinematics update took %d us", micros() - start_kinematics_update_us);
+            debug(debug_str);
+        }
+    #endif
+
 
     if (has_xbee_link) {
         update_xbee_link();

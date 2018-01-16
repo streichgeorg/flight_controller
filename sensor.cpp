@@ -5,43 +5,29 @@
 #include "state.hpp"
 #include "math.hpp"
 
+#include <Wire.h>
 #include <I2Cdev.h>
 #include <MPU6050.h>
-#include <Wire.h>
 
 MPU6050 mpu;
 
 bool init_sensors() {
     Wire.begin();
+    Wire.setClock(400000);
 
     mpu.initialize();
     if (!mpu.testConnection()) {
         return false;
     }
 
-    #ifdef DEBUG
-        int start_calibration_us = micros();
-    #endif
+    mpu.setXAccelOffset(ACCEL_OFFSET_X);
+    mpu.setYAccelOffset(ACCEL_OFFSET_Y);
+    mpu.setZAccelOffset(ACCEL_OFFSET_Z);
 
-    int pitch_sum = 0, roll_sum = 0, yaw_sum = 0;
-    for (int i = 0; i < GYRO_CALIBRATION_SAMPLES; i++) {
-        int16_t gx, gy, gz; 
-        mpu.getRotation(&gx, &gy, &gz);
+    mpu.setXGyroOffset(GYRO_OFFSET_X);
+    mpu.setYGyroOffset(GYRO_OFFSET_Y);
+    mpu.setZGyroOffset(GYRO_OFFSET_Z);
 
-        pitch_sum += gx;
-        roll_sum += gy;
-        yaw_sum += gz;
-    }
-
-    gyro_offset_pitch = pitch_sum / GYRO_CALIBRATION_SAMPLES;
-    gyro_offset_roll = roll_sum / GYRO_CALIBRATION_SAMPLES;
-    gyro_offset_yaw = yaw_sum / GYRO_CALIBRATION_SAMPLES;
-
-    #ifdef DEBUG
-        char debug_str[30];
-        sprintf(debug_str, "Calibration of gyro took %d us", micros() - start_calibration_us);
-        debug(debug_str);
-    #endif
 
     return true;
 }

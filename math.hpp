@@ -44,9 +44,15 @@ struct quat {
 
     static quat from_axis_angle(float angle, vec3 &axis);
 
+    void conjugate();
+    quat rconjugate();
+
     void mul(quat &other, quat &out);
     void mul(quat &other);
     quat rmul(quat &other);
+
+    void mul(vec3 v, vec3 &out);
+    vec3 rmul(vec3 v);
 
     void normalized(quat &out);
     void normalize();
