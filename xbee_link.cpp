@@ -78,8 +78,8 @@ void send_telemetry() {
     frame.raw_accel_y = raw_accel.y;
     frame.raw_accel_z = raw_accel.z;
 
-    frame.pitch_mrad = est_pitch_rad * 10000;
-    frame.roll_mrad = est_roll_rad * 10000;
+    frame.pitch_mrad = est_pitch_rad * 1000;
+    frame.roll_mrad = est_roll_rad * 1000;
 
     xbee_send_message(Message<Telemetry_Frame>(TELEMETRY, &frame));
 }

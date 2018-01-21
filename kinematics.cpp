@@ -46,27 +46,25 @@ void update_kinematics() {
 
         vec3 accel_gravity = accel.rmul(1.0 / accel_norm);
 
-        vec3 error_rad = est_gravity.rcross(accel_gravity);
-        error_rad.mul(ACCEL_WEIGHT);
-
+        vec3 error_rad = accel_gravity.rcross(est_gravity);
         TASK(debug_gravity_stuff(est_gravity, accel_gravity, error_rad), 0.5);
 
+        error_rad.mul(ACCEL_WEIGHT);
+
         w_rad_s.add(error_rad);
-        w_rad_s.mul(1.0 / (1.0 + ACCEL_WEIGHT));
     }
 
-    vec3 w_rad = w_rad_s.rmul(dt_s);
-
-    float w_norm = w_rad.length();
-    if (w_norm < 0.0000001) {
+    if (w_rad_s.length() < 0.0000001) {
         return;
     }
 
-    vec3 axis = w_rad.rmul(1 / w_norm);
-    quat q = quat::from_axis_angle(w_norm, w_rad.rmul(1.0 / w_norm));
-
-    q.mul(rotation, rotation);
-    rotation.normalize();
+    float factor = 0.5 * dt_s;
+    rotation = quat(
+        rotation.q0 + factor * (-rotation.q1 * w_rad_s.x - rotation.q2 * w_rad_s.y - rotation.q3 * w_rad_s.z),
+        rotation.q1 + factor * (rotation.q0 * w_rad_s.x + rotation.q2 * w_rad_s.z - rotation.q3 * w_rad_s.y),
+        rotation.q2 + factor * (rotation.q0 * w_rad_s.y - rotation.q1 * w_rad_s.z + rotation.q3 * w_rad_s.x),
+        rotation.q3 + factor * (rotation.q0 * w_rad_s.z + rotation.q1 * w_rad_s.y - rotation.q2 * w_rad_s.x)
+    );
 
     est_pitch_rad = rotation.get_pitch_rad();
     est_roll_rad = rotation.get_roll_rad();

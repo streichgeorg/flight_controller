@@ -57,7 +57,7 @@ const int RC_CHANNEL_PINS[NUM_RC_CHANNELS] = {
 #define GYRO_OFFSET_Y 24
 #define GYRO_OFFSET_Z 36
 
-#define ACCEL_WEIGHT 0
+#define ACCEL_WEIGHT 0.04
 
 #define ACCEL_1G 16384
-#define GYRO_RANGE_DEG 250
+#define GYRO_SENS_DEG (250.0 / 32767.0)
