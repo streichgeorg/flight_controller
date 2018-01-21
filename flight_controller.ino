@@ -48,37 +48,20 @@ void loop() {
         return;
     }
 
-    #ifdef TIME
-        int start_imu_update_us = micros();
-    #endif
-    update_imu_values();
-    #ifdef TIME
-        {
-            char debug_str[30];
-            sprintf(debug_str, "IMU update took %d us", micros() - start_imu_update_us);
-            debug(debug_str);
-        }
-    #endif
-
-    #ifdef TIME
-        int start_kinematics_update_us = micros();
-    #endif
-    update_kinematics();
-    #ifdef TIME
-        {
-            char debug_str[30];
-            sprintf(debug_str, "Kinematics update took %d us", micros() - start_kinematics_update_us);
-            debug(debug_str);
-        }
-    #endif
-
-
-    if (has_xbee_link) {
-        update_xbee_link();
-    }
+    TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
 
     if (!started_up && millis() - start_up_begin_ms > STARTUP_TIME_S * 1000) {
         started_up = true;
+    }
+
+    if (!started_up) {
+        return;
+    }
+
+    TASK(TIME_EXPR("kinematics", update_kinematics()), KINEMATICS_RATE_HZ);
+
+    if (has_xbee_link) {
+        TASK(TIME_EXPR("telemetry", update_xbee_link()), TELEMETRY_RATE_HZ);
     }
 
     if (!started_up) {

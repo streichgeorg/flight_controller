@@ -8,7 +8,6 @@ void update_xbee_link();
 void send_bytes();
 
 void xbee_debug(char *message);
-void xbee_debug(String message);
 
 void send_flight_info();
 

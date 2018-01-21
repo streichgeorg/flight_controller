@@ -42,17 +42,14 @@ struct quat {
     quat() : q0(0.0), q1(0.0), q2(0.0), q3(0.0){};
     quat(float q0, float q1, float q2, float q3) : q0(q0), q1(q1), q2(q2), q3(q3){};
 
-    static quat from_axis_angle(float angle, vec3 &axis);
+    static quat from_axis_angle(float angle, vec3 axis);
 
     void conjugate();
     quat rconjugate();
 
-    void mul(quat &other, quat &out);
-    void mul(quat &other);
-    quat rmul(quat &other);
-
-    void mul(vec3 v, vec3 &out);
-    vec3 rmul(vec3 v);
+    void mul(quat other, quat &out);
+    void mul(quat other);
+    quat rmul(quat other);
 
     void normalized(quat &out);
     void normalize();

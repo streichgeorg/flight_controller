@@ -4,6 +4,13 @@
 
 RC_Channel RC_Channel::channels[];
 
+RC_Channel *throttle_channel;
+RC_Channel *pitch_channel;
+RC_Channel *roll_channel;
+RC_Channel *yaw_channel;
+RC_Channel *aux0_channel;
+RC_Channel *aux1_channel;
+
 void init_rc_receiver() {
     init_channel<THROTTLE_CHANNEL>(throttle_channel);
     init_channel<PITCH_CHANNEL>(pitch_channel);

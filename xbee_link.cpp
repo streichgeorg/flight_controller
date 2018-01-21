@@ -2,13 +2,14 @@
 
 #include "config.hpp"
 #include "state.hpp"
-#include "ahrs.hpp"
+#include "sensor.hpp"
+#include "kinematics.hpp"
 #include "math.hpp"
 
 #define HANDSHAKE_TIMEOUT_S 2 
 
 bool init_xbee_link() {
-    Serial1.begin(19200);
+    Serial1.begin(115200);
 
     int32_t msg = 0x01020304;
     xbee_send<int32_t>(msg);
@@ -30,7 +31,7 @@ void xbee_send_bytes(char *bytes, int count) {
     Serial1.write(bytes, count);
 }
 
-void debug(char* message) {
+void xbee_debug(char* message) {
     uint8_t length = strlen(message);
     uint8_t type = DEBUG_MSG; 
 
@@ -38,16 +39,6 @@ void debug(char* message) {
     xbee_send<uint8_t>(length);
 
     xbee_send_bytes(message, length);
-}
-
-void debug(String message) {
-    uint8_t length = message.length();
-    uint8_t type = DEBUG_MSG; 
-
-    xbee_send<uint8_t>(type);
-    xbee_send<uint8_t>(length);
-
-    Serial1.print(message);
 }
 
 struct __attribute__ ((packed)) Flight_Info {
@@ -87,16 +78,12 @@ void send_telemetry() {
     frame.raw_accel_y = raw_accel.y;
     frame.raw_accel_z = raw_accel.z;
 
-    frame.pitch_mrad = ahrs.est_pitch_rad * 1000.0;
-    frame.roll_mrad = ahrs.est_roll_rad * 1000.0;
+    frame.pitch_mrad = est_pitch_rad * 10000;
+    frame.roll_mrad = est_roll_rad * 10000;
 
     xbee_send_message(Message<Telemetry_Frame>(TELEMETRY, &frame));
 }
 
-int last_telemetry_ms = 0;
 void update_xbee_link() {
-    if (millis() - last_telemetry_ms > 1000.0 / TELEMETRY_FREQ_HZ)  {
-        send_telemetry();
-        last_telemetry_ms = millis();
-    }
+    send_telemetry();
 }

@@ -24,6 +24,13 @@ struct RC_Channel {
     }
 };
 
+extern RC_Channel *throttle_channel;
+extern RC_Channel *pitch_channel;
+extern RC_Channel *roll_channel;
+extern RC_Channel *yaw_channel;
+extern RC_Channel *aux0_channel;
+extern RC_Channel *aux1_channel;
+
 template<int CHANNEL> 
 void isr() {
     RC_Channel::channels[CHANNEL].isr();
