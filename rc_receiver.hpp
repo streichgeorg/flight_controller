@@ -22,6 +22,8 @@ struct RC_Channel {
 
         high = !high;
     }
+
+    float get_value();
 };
 
 extern RC_Channel *throttle_channel;

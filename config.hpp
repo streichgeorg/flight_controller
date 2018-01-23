@@ -9,10 +9,10 @@
 #define STATUS_LED 13
 #define ARM_LED -1
 
-#define MOTOR_0_PIN 6
-#define MOTOR_1_PIN 4
-#define MOTOR_2_PIN 23
-#define MOTOR_3_PIN 22
+#define MOTOR_1_PIN 6
+#define MOTOR_3_PIN 4
+#define MOTOR_0_PIN 23
+#define MOTOR_2_PIN 22
 
 #define NUM_RC_CHANNELS 6
 
@@ -32,19 +32,24 @@ const int RC_CHANNEL_PINS[NUM_RC_CHANNELS] = {
     RC_CHANNEL_5_PIN,
 };
 
-#define THROTTLE_CHANNEL 0
-#define PITCH_CHANNEL 1
+#define THROTTLE_CHANNEL 5
+#define PITCH_CHANNEL 3
 #define ROLL_CHANNEL 2
-#define YAW_CHANNEL 3
-#define AUX0_CHANNEL 4
-#define AUX1_CHANNEL 5
+#define YAW_CHANNEL 4
+#define AUX0_CHANNEL 1
+#define AUX1_CHANNEL 0 // Broken :(
 
 #define STARTUP_TIME_S 2
 #define ARM_DELAY_S 3
 
 #define IMU_RATE_HZ 1000
 #define KINEMATICS_RATE_HZ 1000
-#define TELEMETRY_RATE_HZ 100
+#define MOTOR_UPDATE_RATE_HZ 1000
+#define XBEE_UPDATE_RATE_HZ 100
+
+#define XBEE_HEALTH_CHECK_DELAY_S 2.0
+#define XBEE_MAX_RESPONSE_TIME_S 0.5
+#define XBEE_RESET_DURATION_S 3.0
 
 #define PWM_RESOLUTION 11
 #define PWM_MAX 2048
@@ -57,7 +62,29 @@ const int RC_CHANNEL_PINS[NUM_RC_CHANNELS] = {
 #define GYRO_OFFSET_Y 24
 #define GYRO_OFFSET_Z 36
 
-#define ACCEL_WEIGHT 0.04
+#define ACCEL_WEIGHT 0.5
 
 #define ACCEL_1G 16384
 #define GYRO_SENS_DEG (250.0 / 32767.0)
+
+#define PITCH_ROLL_ANGLE_P 0.3
+#define PITCH_ROLL_ANGLE_I 0.0
+#define PITCH_ROLL_ANGLE_D 0.0
+
+#define PITCH_ROLL_VELOCITY_P 0.3
+#define PITCH_ROLL_VELOCITY_I 0.0
+#define PITCH_ROLL_VELOCITY_D 0.0
+
+#define YAW_VELOCITY_P 0.1
+#define YAW_VELOCITY_I 0.0
+#define YAW_VELOCITY_D 0.0
+
+#define RC_MIN 1100.0
+#define RC_MAX 1900.0
+#define RC_IGNORE_MIN 1450.0
+#define RC_IGNORE_MAX 1550.0
+
+#define MIN_THROTTLE 0.1
+#define MAX_THROTTLE 0.5
+
+#define MAX_MESSAGE_LENGTH 50

@@ -1,2 +1,3 @@
-Better mount for MPU6050
-RC-Receiver
+Switch to PPM for the RC-Receiver
+Add some more leds to display things like: arming, connection_status
+Add checksum to xbee link

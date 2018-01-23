@@ -7,6 +7,7 @@
 #include "xbee_link.hpp"
 #include "motor.hpp"
 #include "kinematics.hpp"
+#include "pid.hpp"
 #include "math.hpp"
 
 void setup() {
@@ -16,7 +17,7 @@ void setup() {
     init_motors();
     init_rc_receiver();
 
-    has_xbee_link = init_xbee_link();
+    init_xbee_link();
 
     if (!init_sensors()) {
         debug("Failed to initialize sensor");
@@ -29,16 +30,50 @@ void setup() {
         debug("Initialization was not succesful");
     }
 
-    send_flight_info();
+    flight_mode = AUTO_LEVEL;
 
     finished_initialization = true;
 
     start_up_begin_ms = millis();
 }
 
-void begin_arm() {
-    arming = true;
-    arm_begin_ms = millis();
+int32_t last_motor_update = 0;
+void update_motors() {
+    float dt = (micros() - last_motor_update) / 1e6;
+
+    float pitch_target_rad_s, roll_target_rad_s;
+    float yaw_target_rad_s = fmap(yaw_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
+
+    if (flight_mode == AUTO_LEVEL) {
+        float pitch_target_rad = fmap(pitch_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
+        float roll_target_rad = fmap(roll_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
+
+        pitch_angle_pid.update(dt, pitch_target_rad, est_pitch_rad);
+        roll_angle_pid.update(dt, roll_target_rad, est_roll_rad);
+
+        pitch_target_rad_s = pitch_angle_pid.value;
+        roll_target_rad_s = roll_angle_pid.value;
+    } else if (flight_mode == ACRO) {
+        pitch_target_rad_s = fmap(pitch_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
+        roll_target_rad_s = fmap(roll_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
+    }
+
+    pitch_velocity_pid.update(dt, pitch_target_rad_s, raw_gyro_rad_s.x);
+    roll_velocity_pid.update(dt, roll_target_rad_s, raw_gyro_rad_s.y);
+    yaw_velocity_pid.update(dt, yaw_target_rad_s, raw_gyro_rad_s.z);
+
+    float throttle = fmap(throttle_channel->get_value(), 0.0, 1.0, MIN_THROTTLE, MAX_THROTTLE);
+
+    float pitch = pitch_velocity_pid.value;
+    float roll = roll_velocity_pid.value;
+    float yaw = yaw_velocity_pid.value;
+
+    write_motors(
+        throttle - pitch - roll - yaw,
+        throttle + pitch - roll + yaw,
+        throttle - pitch + roll + yaw,
+        throttle + pitch + roll - yaw
+    );
 }
 
 void loop() {
@@ -49,8 +84,13 @@ void loop() {
     }
 
     TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
+    TASK(TIME_EXPR("xbee", update_xbee_link()), XBEE_UPDATE_RATE_HZ);
 
-    if (!started_up && millis() - start_up_begin_ms > STARTUP_TIME_S * 1000) {
+    if (!started_up && aux0_channel->get_value() > 0.75) {
+        TASK(debug("Set the copter to unarmed on the controller"), 1.0);
+    }
+
+    if (!started_up && millis() - start_up_begin_ms > STARTUP_TIME_S * 1000 && aux0_channel->get_value() < 0.25) {
         started_up = true;
     }
 
@@ -60,15 +100,40 @@ void loop() {
 
     TASK(TIME_EXPR("kinematics", update_kinematics()), KINEMATICS_RATE_HZ);
 
-    if (has_xbee_link) {
-        TASK(TIME_EXPR("telemetry", update_xbee_link()), TELEMETRY_RATE_HZ);
-    }
-
     if (!started_up) {
         return;
     }
 
+    if (!armed && !arming && aux0_channel->get_value() > 0.75) {
+        arming = true;
+        arm_begin_ms = millis();
+
+        debug("Begin arming copter");
+    }
+
+    if (armed && aux0_channel->get_value() < 0.25) {
+        write_motors(0.0, 0.0, 0.0, 0.0);
+
+        armed = false;
+
+        pitch_angle_pid.reset();
+        roll_angle_pid.reset();
+
+        pitch_velocity_pid.reset();
+        roll_velocity_pid.reset();
+        yaw_velocity_pid.reset();
+
+        debug("Copter is Unarmed");
+    }
+
     if (arming && millis() - arm_begin_ms > ARM_DELAY_S * 1000) {
+        armed = true;
         arming = false;
+
+        debug("Copter is Armed");
+    }
+
+    if (armed) {
+        TASK(update_motors(), MOTOR_UPDATE_RATE_HZ);
     }
 }

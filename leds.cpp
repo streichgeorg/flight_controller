@@ -2,6 +2,7 @@
 
 #include "config.hpp"
 #include "state.hpp"
+#include "xbee_link.hpp"
 
 #include <Arduino.h>
 
@@ -41,9 +42,13 @@ void init_leds() {
 
 void update_leds() {
     if (finished_initialization && succesful_initialization) {
-        if (started_up) {
+        if (xbee_link_is_healthy()) {
             status_led->mode = ENABLED;
+        } else if (xbee_link_is_resetting()) {
+            status_led->freq = 8;
+            status_led->mode = BLINKING;
         } else {
+            status_led->freq = 4;
             status_led->mode = BLINKING;
         }
     } else {

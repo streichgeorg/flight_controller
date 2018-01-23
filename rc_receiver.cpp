@@ -1,6 +1,8 @@
 #include "rc_receiver.hpp"
 
 #include "state.hpp"
+#include "math.hpp"
+#include "common.hpp"
 
 RC_Channel RC_Channel::channels[];
 
@@ -18,4 +20,14 @@ void init_rc_receiver() {
     init_channel<YAW_CHANNEL>(yaw_channel);
     init_channel<AUX0_CHANNEL>(aux0_channel);
     init_channel<AUX1_CHANNEL>(aux1_channel);
+}
+
+float RC_Channel::get_value() {
+    if (value > RC_IGNORE_MIN && value < RC_IGNORE_MAX)  {
+        return 0.5;
+    } else if (value < RC_IGNORE_MIN) {
+        return fmap(value, RC_MIN, RC_IGNORE_MIN, 0.0, 0.5);
+    } else {
+        return fmap(value, RC_IGNORE_MAX, RC_MAX, 0.5, 1.0);
+    }
 }
