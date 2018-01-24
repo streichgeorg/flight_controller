@@ -45,7 +45,7 @@ const int RC_CHANNEL_PINS[NUM_RC_CHANNELS] = {
 #define IMU_RATE_HZ 1000
 #define KINEMATICS_RATE_HZ 1000
 #define MOTOR_UPDATE_RATE_HZ 1000
-#define XBEE_UPDATE_RATE_HZ 100
+#define XBEE_UPDATE_RATE_HZ 10 // TODO: Set this to a higher value, when the connection problems are solved
 
 #define XBEE_HEALTH_CHECK_DELAY_S 2.0
 #define XBEE_MAX_RESPONSE_TIME_S 0.5

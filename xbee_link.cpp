@@ -60,13 +60,12 @@ bool read_length = false;
 uint8_t message_length;
 // Try to read a message. If something is wrong reset the connection.
 void read_message() {
-    if (available() < 0) {
+    if (available() == 0) {
         return;
     }
 
     if (!read_type) {
-        read(&message_type);
-
+        read<uint8_t>(&message_type);
         if (message_type >= RX_Message_Type::LAST_VALUE) {
             reset_xbee_link();
             return;
@@ -80,7 +79,7 @@ void read_message() {
     }
 
     if (!read_length) {
-        read(&message_length);
+        read<uint8_t>(&message_length);
         if (message_length > MAX_MESSAGE_LENGTH) {
             reset_xbee_link();
             return;
@@ -101,15 +100,16 @@ void read_message() {
         case RX_Message_Type::HEALTH_CHECK_RESPONSE: {
             char response[HEALTH_CHECK_CODE_LENGTH];
             read_bytes(response, HEALTH_CHECK_CODE_LENGTH);
-            send<uint8_t>(TX_Message_Type::DEBUG_MSG);
-            send<uint8_t>(HEALTH_CHECK_CODE_LENGTH);
-            send_bytes(response, HEALTH_CHECK_CODE_LENGTH);
+
             handle_health_check_response(response);
             break;
         }
         default: {
         }
     }
+
+    read_type = false;
+    read_length = false;
 }
 
 void send_debug_message(char* message) {
@@ -128,6 +128,18 @@ struct __attribute__ ((packed)) Flight_Info {
 void send_flight_info() {
     Flight_Info info;
     send_message(TX_Message_Type::FLIGHT_INFO, info);
+}
+
+struct __attribute__ ((packed)) Flight_Info {
+    // uint8_t battery_charge;
+
+    int16_t max_delay_imu_ms;
+    int16_t max_delay_kinematics_ms;
+    int16_t max_delay_motor_ms;
+};
+
+void send_flight_stats() {
+    
 }
 
 struct __attribute__ ((packed)) Telemetry_Frame {
@@ -182,23 +194,14 @@ int reset_start_ms;
 void reset_xbee_link() {
     connection_status = Connection_Status::RESETTING;
     reset_start_ms = millis();
-
-    // Clear input buffer
-    // TODO: Protect from infinite loop
-    while (Serial1.available()) {
-        Serial1.read();
-    }
 }
 
 
 bool health_check_pending = false;
-int health_check_sent_ms;
-int last_health_check_ms = 0;
+int last_health_check_ms;
+int last_health_check_started_ms;
 void update_health_check() {
-    if (health_check_pending && millis() - health_check_sent_ms > XBEE_MAX_RESPONSE_TIME_S * 1e3) {
-        health_check_pending = false;
-        last_health_check_ms = 0;
-
+    if (health_check_pending && millis() - last_health_check_started_ms > XBEE_MAX_RESPONSE_TIME_S * 1e3) {
         reset_xbee_link();
     } else if (!health_check_pending && millis() - last_health_check_ms > XBEE_HEALTH_CHECK_DELAY_S * 1e3) {
         send<uint8_t>(TX_Message_Type::HEALTH_CHECK);
@@ -206,19 +209,17 @@ void update_health_check() {
         send_bytes(HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH);
 
         health_check_pending = true;
-        health_check_sent_ms = millis();
+        last_health_check_started_ms = millis();
     }
 }
 
 void handle_health_check_response(char* response) {
     if (!health_check_pending) {
-        send_debug_message("not pending");
         reset_xbee_link();
     } else if (memcmp(response, HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH) == 0) {
-        send_debug_message("succ");
+        health_check_pending = false;
         last_health_check_ms = millis();
     } else {
-        send_debug_message("fail");
         reset_xbee_link();
     }
 }
@@ -234,6 +235,12 @@ void update_xbee_link() {
 
         case Connection_Status::RESETTING: {
             if (millis() - reset_start_ms > XBEE_RESET_DURATION_S * 1e3) {
+                // Clear input buffer
+                // TODO: Protect from infinite loop
+                while (Serial1.available()) {
+                    Serial1.read();
+                }
+
                 connection_status = Connection_Status::CONNECTING;
 
                 send_bytes(HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH);
@@ -250,6 +257,7 @@ void update_xbee_link() {
 
                 if (memcmp(response, HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH) == 0) {
                     last_health_check_ms = millis();
+                    health_check_pending = false;
                     connection_status = Connection_Status::HEALTHY;
                 } else {
                     reset_xbee_link();
