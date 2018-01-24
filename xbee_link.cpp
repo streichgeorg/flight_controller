@@ -1,6 +1,7 @@
 #include "xbee_link.hpp"
 
 #include "config.hpp"
+#include "common.hpp"
 #include "state.hpp"
 #include "sensor.hpp"
 #include "kinematics.hpp"
@@ -38,21 +39,13 @@ void read_bytes(char *bytes, int count) {
     Serial1.readBytes(bytes, count);
 }
 
-int time_code_sent_ms;
-void init_xbee_link() {
-    Serial1.begin(115200);
-
-    connection_status = Connection_Status::CONNECTING;
-    send_bytes(HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH);
-    time_code_sent_ms = millis();
-}
-
 int available() {
     return Serial1.available();
 }
 
 void handle_health_check_response(char *response);
 void reset_xbee_link();
+void report_error(uint8_t error_code);
 
 bool read_type = false;
 uint8_t message_type;
@@ -64,9 +57,14 @@ void read_message() {
         return;
     }
 
+    char s[30];
+    sprintf(s, "available: %d", available());
+    send_debug_message(s);
+
     if (!read_type) {
         read<uint8_t>(&message_type);
         if (message_type >= RX_Message_Type::LAST_VALUE) {
+            report_error(Error::INVALID_MESSAGE_TYPE);
             reset_xbee_link();
             return;
         }
@@ -81,6 +79,7 @@ void read_message() {
     if (!read_length) {
         read<uint8_t>(&message_length);
         if (message_length > MAX_MESSAGE_LENGTH) {
+            report_error(Error::INVALID_MESSAGE_LENGTH);
             reset_xbee_link();
             return;
         }
@@ -121,6 +120,10 @@ void send_debug_message(char* message) {
     send_bytes(message, length);
 }
 
+void report_error(uint8_t error_code) {
+    send_message(TX_Message_Type::ERROR, error_code);
+}
+
 struct __attribute__ ((packed)) Flight_Info {
     uint8_t version = VERSION;
 };
@@ -130,7 +133,7 @@ void send_flight_info() {
     send_message(TX_Message_Type::FLIGHT_INFO, info);
 }
 
-struct __attribute__ ((packed)) Flight_Info {
+struct __attribute__ ((packed)) Flight_Stats {
     // uint8_t battery_charge;
 
     int16_t max_delay_imu_ms;
@@ -194,14 +197,17 @@ int reset_start_ms;
 void reset_xbee_link() {
     connection_status = Connection_Status::RESETTING;
     reset_start_ms = millis();
-}
 
+    read_type = false;
+    read_length = false;
+}
 
 bool health_check_pending = false;
 int last_health_check_ms;
 int last_health_check_started_ms;
 void update_health_check() {
     if (health_check_pending && millis() - last_health_check_started_ms > XBEE_MAX_RESPONSE_TIME_S * 1e3) {
+        report_error(Error::TIMEOUT);
         reset_xbee_link();
     } else if (!health_check_pending && millis() - last_health_check_ms > XBEE_HEALTH_CHECK_DELAY_S * 1e3) {
         send<uint8_t>(TX_Message_Type::HEALTH_CHECK);
@@ -215,21 +221,40 @@ void update_health_check() {
 
 void handle_health_check_response(char* response) {
     if (!health_check_pending) {
+        report_error(Error::RESPONSE_WHILE_NOT_PENDING);
         reset_xbee_link();
     } else if (memcmp(response, HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH) == 0) {
         health_check_pending = false;
         last_health_check_ms = millis();
     } else {
+        report_error(Error::INVALID_RESPONSE_CODE);
         reset_xbee_link();
     }
 }
 
-void update_xbee_link() {
+int time_code_sent_ms;
+void check_connected() {
+    if (available() >= HEALTH_CHECK_CODE_LENGTH) {
+        char response[HEALTH_CHECK_CODE_LENGTH];
+        read_bytes(response, HEALTH_CHECK_CODE_LENGTH);
+
+        if (memcmp(response, HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH) == 0) {
+            last_health_check_ms = millis();
+            health_check_pending = false;
+            connection_status = Connection_Status::HEALTHY;
+        } else {
+            reset_xbee_link();
+        }
+    } else if (millis() - time_code_sent_ms > XBEE_MAX_RESPONSE_TIME_S * 1e3) {
+        reset_xbee_link();
+    }
+}
+
+void update_connection() {
     switch (connection_status) {
         case Connection_Status::HEALTHY: {
-            send_telemetry();
-            update_health_check();
-            read_message();
+            // update_health_check();
+            // read_message();
             break;
         }
 
@@ -251,22 +276,23 @@ void update_xbee_link() {
         }
 
         case Connection_Status::CONNECTING: {
-            if (available() >= HEALTH_CHECK_CODE_LENGTH) {
-                char response[HEALTH_CHECK_CODE_LENGTH];
-                read_bytes(response, HEALTH_CHECK_CODE_LENGTH);
-
-                if (memcmp(response, HEALTH_CHECK_CODE, HEALTH_CHECK_CODE_LENGTH) == 0) {
-                    last_health_check_ms = millis();
-                    health_check_pending = false;
-                    connection_status = Connection_Status::HEALTHY;
-                } else {
-                    reset_xbee_link();
-                }
-            } else if (millis() - time_code_sent_ms > XBEE_MAX_RESPONSE_TIME_S * 1e3) {
-                reset_xbee_link();
-            }
-
+            check_connected();
             break;
         }
     }
+}
+
+void update_xbee_link() {
+    TASK(update_connection(), XBEE_UPDATE_RATE_HZ);
+
+    if (connection_status == Connection_Status::HEALTHY) {
+        TASK(send_telemetry(), TELEMETRY_RATE_HZ);
+    }
+}
+
+void init_xbee_link() {
+    Serial1.begin(115200);
+
+    connection_status = Connection_Status::CONNECTING;
+    time_code_sent_ms = millis();
 }

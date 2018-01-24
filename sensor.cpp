@@ -14,6 +14,45 @@ MPU6050 mpu;
 vec3 raw_gyro_rad_s;
 vec3 raw_accel;
 
+bool imu_calibrated = false;
+
+#define NUM_SAMPLES 1000
+#define NUM_PRE_SAMPLES 100 
+
+void calibrate_gyro() {
+    #ifdef MANUAL_GYRO_CALIBRATION
+        mpu.setXGyroOffset(GYRO_OFFSET_X);
+        mpu.setYGyroOffset(GYRO_OFFSET_Y);
+        mpu.setZGyroOffset(GYRO_OFFSET_Z);
+    #else
+        bool calibrated = false;
+
+        int sum_gx, sum_gy, sum_gz;
+        int16_t gx, gy, gz;
+
+        for (int i = 0; i < NUM_PRE_SAMPLES; i++) {
+            mpu.getRotation(&gx, &gy, &gz);
+        }
+
+        for (int i = 0; i < NUM_SAMPLES; i++) {
+            mpu.getRotation(&gx, &gy, &gz);
+            sum_gx += gx;
+            sum_gy += gy;
+            sum_gy += gz;
+
+            delay(2);
+        }
+
+        mpu.setXGyroOffset(-sum_gx / NUM_SAMPLES);
+        mpu.setYGyroOffset(-sum_gy / NUM_SAMPLES);
+        mpu.setZGyroOffset(-sum_gz / NUM_SAMPLES);
+
+        mpu.getRotation(&gx, &gy, &gz);
+    #endif
+
+    imu_calibrated = true;
+}
+
 bool init_sensors() {
     Wire.begin();
     Wire.setClock(400000);
@@ -32,9 +71,6 @@ bool init_sensors() {
     mpu.setYAccelOffset(ACCEL_OFFSET_Y);
     mpu.setZAccelOffset(ACCEL_OFFSET_Z);
 
-    mpu.setXGyroOffset(GYRO_OFFSET_X);
-    mpu.setYGyroOffset(GYRO_OFFSET_Y);
-    mpu.setZGyroOffset(GYRO_OFFSET_Z);
 
     return true;
 }

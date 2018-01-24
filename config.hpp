@@ -45,29 +45,31 @@ const int RC_CHANNEL_PINS[NUM_RC_CHANNELS] = {
 #define IMU_RATE_HZ 1000
 #define KINEMATICS_RATE_HZ 1000
 #define MOTOR_UPDATE_RATE_HZ 1000
-#define XBEE_UPDATE_RATE_HZ 10 // TODO: Set this to a higher value, when the connection problems are solved
+#define TELEMETRY_RATE_HZ 50 // TODO: Set this to a higher value, when the connection problems are solved
+#define XBEE_UPDATE_RATE_HZ 20
 
 #define XBEE_HEALTH_CHECK_DELAY_S 2.0
-#define XBEE_MAX_RESPONSE_TIME_S 0.5
+#define XBEE_MAX_RESPONSE_TIME_S 1.0
 #define XBEE_RESET_DURATION_S 3.0
 
 #define PWM_RESOLUTION 11
 #define PWM_MAX 2048
 #define PWM_MIN 1024
 
+#define MANUAL_GYRO_CALIBRATION
 #define ACCEL_OFFSET_X 1423
-#define ACCEL_OFFSET_Y 2182
-#define ACCEL_OFFSET_Z 1985
-#define GYRO_OFFSET_X -37
-#define GYRO_OFFSET_Y 24
-#define GYRO_OFFSET_Z 36
+#define ACCEL_OFFSET_Y 2202
+#define ACCEL_OFFSET_Z 1993
+#define GYRO_OFFSET_X -39
+#define GYRO_OFFSET_Y 23
+#define GYRO_OFFSET_Z 39
 
-#define ACCEL_WEIGHT 0.5
+#define ACCEL_WEIGHT 0
 
 #define ACCEL_1G 16384
 #define GYRO_SENS_DEG (250.0 / 32767.0)
 
-#define PITCH_ROLL_ANGLE_P 0.3
+#define PITCH_ROLL_ANGLE_P 0.6
 #define PITCH_ROLL_ANGLE_I 0.0
 #define PITCH_ROLL_ANGLE_D 0.0
 

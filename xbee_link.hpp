@@ -12,19 +12,30 @@ bool xbee_link_is_healthy();
 bool xbee_link_is_resetting();
 bool xbee_link_is_connecting();
 
+namespace Error {
+    enum uint8_t {
+        TIMEOUT,
+        INVALID_MESSAGE_TYPE,
+        INVALID_MESSAGE_LENGTH,
+        INVALID_RESPONSE_CODE,
+        RESPONSE_WHILE_NOT_PENDING,
+    };
+}
+
 namespace TX_Message_Type {
     enum uint8_t {
         FLIGHT_INFO,
         TELEMETRY,
         DEBUG_MSG,
         HEALTH_CHECK,
+        ERROR,
     };
 }
 
 namespace RX_Message_Type {
     enum uint8_t {
-        HEALTH_CHECK_RESPONSE,
-        LAST_VALUE,
+        HEALTH_CHECK_RESPONSE = 5,
+        LAST_VALUE = 6,
     };
 }
 

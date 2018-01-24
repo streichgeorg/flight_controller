@@ -30,7 +30,7 @@ void setup() {
         debug("Initialization was not succesful");
     }
 
-    flight_mode = AUTO_LEVEL;
+    flight_mode = ACRO;
 
     finished_initialization = true;
 
@@ -66,7 +66,8 @@ void update_motors() {
 
     float pitch = pitch_velocity_pid.value;
     float roll = roll_velocity_pid.value;
-    float yaw = yaw_velocity_pid.value;
+    // float yaw = yaw_velocity_pid.value;
+    float yaw = 0.0;
 
     write_motors(
         throttle - pitch - roll - yaw,
@@ -83,8 +84,13 @@ void loop() {
         return;
     }
 
-    TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
-    TASK(TIME_EXPR("xbee", update_xbee_link()), XBEE_UPDATE_RATE_HZ);
+    if (imu_calibrated) {
+        TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
+    } else {
+        calibrate_gyro();
+    }
+
+    update_xbee_link();
 
     if (!started_up && aux0_channel->get_value() > 0.75) {
         TASK(debug("Set the copter to unarmed on the controller"), 1.0);
