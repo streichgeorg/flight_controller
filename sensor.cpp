@@ -25,8 +25,6 @@ void calibrate_gyro() {
         mpu.setYGyroOffset(GYRO_OFFSET_Y);
         mpu.setZGyroOffset(GYRO_OFFSET_Z);
     #else
-        bool calibrated = false;
-
         int sum_gx, sum_gy, sum_gz;
         int16_t gx, gy, gz;
 
@@ -49,8 +47,6 @@ void calibrate_gyro() {
 
         mpu.getRotation(&gx, &gy, &gz);
     #endif
-
-    imu_calibrated = true;
 }
 
 bool init_sensors() {
@@ -71,6 +67,7 @@ bool init_sensors() {
     mpu.setYAccelOffset(ACCEL_OFFSET_Y);
     mpu.setZAccelOffset(ACCEL_OFFSET_Z);
 
+    calibrate_gyro();
 
     return true;
 }

@@ -10,7 +10,7 @@ extern bool arming;
 extern float arm_begin_ms;
 extern bool armed;
 
-enum Flight_Mode {
+enum class Flight_Mode {
     ACRO,
     AUTO_LEVEL
 };

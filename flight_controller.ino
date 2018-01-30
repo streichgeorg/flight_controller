@@ -30,7 +30,7 @@ void setup() {
         debug("Initialization was not succesful");
     }
 
-    flight_mode = ACRO;
+    flight_mode = Flight_Mode::ACRO;
 
     finished_initialization = true;
 
@@ -44,16 +44,16 @@ void update_motors() {
     float pitch_target_rad_s, roll_target_rad_s;
     float yaw_target_rad_s = fmap(yaw_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
 
-    if (flight_mode == AUTO_LEVEL) {
-        float pitch_target_rad = fmap(pitch_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
-        float roll_target_rad = fmap(roll_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
+    if (flight_mode == Flight_Mode::AUTO_LEVEL) {
+        float pitch_target_rad = fmap(pitch_channel->get_value(), 0.0, 1.0, -0.3, 0.3);
+        float roll_target_rad = fmap(roll_channel->get_value(), 0.0, 1.0, -0.3, 0.3);
 
         pitch_angle_pid.update(dt, pitch_target_rad, est_pitch_rad);
         roll_angle_pid.update(dt, roll_target_rad, est_roll_rad);
 
         pitch_target_rad_s = pitch_angle_pid.value;
         roll_target_rad_s = roll_angle_pid.value;
-    } else if (flight_mode == ACRO) {
+    } else if (flight_mode == Flight_Mode::ACRO) {
         pitch_target_rad_s = fmap(pitch_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
         roll_target_rad_s = fmap(roll_channel->get_value(), 0.0, 1.0, -1.0, 1.0);
     }
@@ -66,14 +66,13 @@ void update_motors() {
 
     float pitch = pitch_velocity_pid.value;
     float roll = roll_velocity_pid.value;
-    // float yaw = yaw_velocity_pid.value;
-    float yaw = 0.0;
+    float yaw = yaw_velocity_pid.value;
 
     write_motors(
-        throttle - pitch - roll - yaw,
-        throttle + pitch - roll + yaw,
-        throttle - pitch + roll + yaw,
-        throttle + pitch + roll - yaw
+        throttle - pitch - roll + yaw,
+        throttle + pitch - roll - yaw,
+        throttle - pitch + roll - yaw,
+        throttle + pitch + roll + yaw
     );
 }
 
@@ -84,11 +83,7 @@ void loop() {
         return;
     }
 
-    if (imu_calibrated) {
-        TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
-    } else {
-        calibrate_gyro();
-    }
+    TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
 
     update_xbee_link();
 

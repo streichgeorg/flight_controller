@@ -6,7 +6,6 @@
 
 #include <Arduino.h>
 
-
 enum Led_Mode {
     DISABLED,
     ENABLED,
@@ -62,7 +61,6 @@ void update_leds() {
     } else {
         arm_led->mode = DISABLED;
     }
-
 
     for (int i = 0; i < led_count; i++) {
         Led &led = leds[i];

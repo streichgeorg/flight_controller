@@ -172,9 +172,9 @@ void send_telemetry() {
 
     frame.time_stamp_ms = millis();
 
-    frame.raw_gyro_pitch_crad_s = raw_gyro_rad_s.x * 100;
-    frame.raw_gyro_roll_crad_s = raw_gyro_rad_s.y * 100;
-    frame.raw_gyro_yaw_crad_s = raw_gyro_rad_s.z * 100;
+    frame.raw_gyro_pitch_crad_s = raw_gyro_rad_s.x * 1000;
+    frame.raw_gyro_roll_crad_s = raw_gyro_rad_s.y * 1000;
+    frame.raw_gyro_yaw_crad_s = raw_gyro_rad_s.z * 1000;
 
     frame.raw_accel_x = raw_accel.x;
     frame.raw_accel_y = raw_accel.y;

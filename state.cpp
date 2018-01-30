@@ -10,8 +10,8 @@ bool finished_initialization = false;
 int start_up_begin_ms;
 bool started_up = false;
 
-bool arming = false;
 float arm_begin_ms;
+bool arming = false;
 bool armed = false;
 
 Flight_Mode flight_mode;
