@@ -13,11 +13,17 @@ float est_pitch_rad = 0, est_roll_rad = 0;
 void init_kinematics() {
 }
 
+bool first_update = true;
 int32_t last_kinematics_us;
 void update_kinematics() {
     float dt_s = (micros() - last_kinematics_us) / 1e6;
 
     last_kinematics_us = micros();
+
+    if (first_update) {
+        first_update = false;
+        return;
+    }
 
     vec3 w_rad_s = raw_gyro_rad_s;
 

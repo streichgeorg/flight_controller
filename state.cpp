@@ -14,7 +14,7 @@ float arm_begin_ms;
 bool arming = false;
 bool armed = false;
 
-Flight_Mode flight_mode;
+Flight_Mode flight_mode = Flight_Mode::AUTO_LEVEL;
 
 PID pitch_angle_pid(PITCH_ROLL_ANGLE_P, PITCH_ROLL_ANGLE_I, PITCH_ROLL_ANGLE_D);
 PID roll_angle_pid(PITCH_ROLL_ANGLE_P, PITCH_ROLL_ANGLE_I, PITCH_ROLL_ANGLE_D);

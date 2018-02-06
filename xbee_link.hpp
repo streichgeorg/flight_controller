@@ -4,6 +4,7 @@
 
 void init_xbee_link();
 void update_xbee_link();
+void update_connection();
 
 void send_flight_info();
 void send_debug_message(char *message);

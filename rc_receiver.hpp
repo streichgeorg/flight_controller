@@ -8,10 +8,9 @@ struct RC_Channel {
     static int num_channels;
     static RC_Channel channels[NUM_RC_CHANNELS];
 
-    float value = 0;
-
-    int time_rising_edge_us;
-    bool high;
+    volatile bool high;
+    volatile int time_rising_edge_us;
+    volatile float value = 0;
 
     void isr() {
         if (high) {

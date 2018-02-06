@@ -19,6 +19,13 @@ void setup() {
 
     init_xbee_link();
 
+    // Take some time to find a connection, if not found
+    // we can still try later.
+    int xbee_init_time_ms = millis();
+    while (millis() - xbee_init_time_ms < 1e3 * 10 && !xbee_link_is_healthy()) {
+        TASK(update_connection(), XBEE_UPDATE_RATE_HZ);
+    }
+
     if (!init_sensors()) {
         debug("Failed to initialize sensor");
         succesful_initialization = false;
@@ -30,10 +37,9 @@ void setup() {
         debug("Initialization was not succesful");
     }
 
-    flight_mode = Flight_Mode::ACRO;
-
     finished_initialization = true;
 
+    // Entering startup
     start_up_begin_ms = millis();
 }
 
@@ -83,9 +89,11 @@ void loop() {
         return;
     }
 
-    TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
 
     update_xbee_link();
+
+    TASK(TIME_EXPR("imu", update_imu_values()), IMU_RATE_HZ);
+    TASK(TIME_EXPR("kinematics", update_kinematics()), KINEMATICS_RATE_HZ);
 
     if (!started_up && aux0_channel->get_value() > 0.75) {
         TASK(debug("Set the copter to unarmed on the controller"), 1.0);
@@ -99,12 +107,6 @@ void loop() {
         return;
     }
 
-    TASK(TIME_EXPR("kinematics", update_kinematics()), KINEMATICS_RATE_HZ);
-
-    if (!started_up) {
-        return;
-    }
-
     if (!armed && !arming && aux0_channel->get_value() > 0.75) {
         arming = true;
         arm_begin_ms = millis();
@@ -112,7 +114,7 @@ void loop() {
         debug("Begin arming copter");
     }
 
-    if (armed && aux0_channel->get_value() < 0.25) {
+    if (armed && aux0_channel->get_value() < 0.75) {
         write_motors(0.0, 0.0, 0.0, 0.0);
 
         armed = false;
