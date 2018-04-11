@@ -104,7 +104,7 @@ bool init_sensors() {
     }
 
     // TODO: Experiment with this
-    mpu.setDLPFMode(MPU6050_DLPF_BW_98);
+    mpu.setDLPFMode(MPU6050_DLPF_BW_20);
     mpu.setFullScaleGyroRange(MPU6050_GYRO_FS_250);
 
     mpu.setXAccelOffset(ACCEL_OFFSET_X);
@@ -122,6 +122,6 @@ void update_imu_values() {
 
     mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-    raw_gyro_rad_s = vec3(gx, gy, gz).rmul(GYRO_SENS_DEG * DEG_TO_RAD);
+    raw_gyro_rad_s = vec3(gx, gy, gz) * GYRO_SENS_DEG * DEG_TO_RAD;
     raw_accel = vec3(ax, ay, az);
 }

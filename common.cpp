@@ -5,9 +5,11 @@
 #include "math.hpp"
 
 void debug(char *message) {
-    if (xbee_link_is_healthy()) {
-        send_debug_message(message);
-    }
+    #ifdef DEBUG
+        if (xbee_link_is_healthy()) {
+            send_debug_message(message);
+        }
+    #endif
 }
 
 void debug_num(char *message, float num) {

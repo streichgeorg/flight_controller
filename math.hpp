@@ -9,30 +9,33 @@ struct vec3 {
     vec3(float x, float y, float z) : x(x), y(y), z(z){};
 
     void add(vec3 other, vec3 &out);
-    void add(vec3 other);
-    vec3 radd(vec3 other);
+    vec3& operator+=(const vec3 &rhs);
+    vec3 operator+(const vec3 &rhs);
 
     void sub(vec3 other, vec3 &out);
-    void sub(vec3 other);
-    vec3 rsub(vec3 other);
+    vec3& operator-=(const vec3 &rhs);
+    vec3 operator-(const vec3 &rhs);
 
     void mul(float p, vec3 &out);
-    void mul(float p);
-    vec3 rmul(float p);
+    vec3& operator*=(float rhs);
+    vec3 operator*(float rhs);
+
+    void div(float p, vec3 &out);
+    vec3& operator/=(float rhs);
+    vec3 operator/(float rhs);
 
     void reversed(vec3 &out);
-    void reverse();
-    vec3 rreversed();
+    vec3 operator-();
 
     float length();
 
     void cross(vec3 other, vec3 &out);
-    vec3 rcross(vec3 other);
+    vec3 cross(vec3 other);
 
     float dot(vec3 other);
 
     void normalized(vec3 &out);
-    vec3 rnormalized();
+    vec3 normalized();
     void normalize();
 };
 
@@ -43,13 +46,6 @@ struct quat {
     quat(float q0, float q1, float q2, float q3) : q0(q0), q1(q1), q2(q2), q3(q3){};
 
     static quat from_axis_angle(float angle, vec3 axis);
-
-    void conjugate();
-    quat rconjugate();
-
-    void mul(quat other, quat &out);
-    void mul(quat other);
-    quat rmul(quat other);
 
     void normalized(quat &out);
     void normalize();

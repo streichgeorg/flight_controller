@@ -6,28 +6,26 @@
 
 RC_Channel RC_Channel::channels[];
 
-RC_Channel *throttle_channel;
-RC_Channel *pitch_channel;
-RC_Channel *roll_channel;
-RC_Channel *yaw_channel;
-RC_Channel *aux0_channel;
-RC_Channel *aux1_channel;
+RC_Channel *throttle_channel = &channels[0];
+RC_Channel *pitch_channel = &channels[1];
+RC_Channel *roll_channel = &channels[2];
+RC_Channel *yaw_channel = &channels[3];
+RC_Channel *aux0_channel = &channels[4];
+RC_Channel *aux1_channel = &channels[5];
 
 void init_rc_receiver() {
-    init_channel<THROTTLE_CHANNEL>(throttle_channel);
-    init_channel<PITCH_CHANNEL>(pitch_channel);
-    init_channel<ROLL_CHANNEL>(roll_channel);
-    init_channel<YAW_CHANNEL>(yaw_channel);
-    init_channel<AUX0_CHANNEL>(aux0_channel);
-    init_channel<AUX1_CHANNEL>(aux1_channel);
+    #ifdef PWM_SIGNAL
+        attachInterrupt(RC_CHANNEL_PINS[THROTTLE_CHANNEL], RC_Receiver::isr<THROTTLE_CHANNEL>, CHANGE);
+        attachInterrupt(RC_CHANNEL_PINS[PITCH_CHANNEL], RC_Receiver::isr<PITCH_CHANNEL>, CHANGE);
+        attachInterrupt(RC_CHANNEL_PINS[ROLL_CHANNEL], RC_Receiver::isr<ROLL_CHANNEL>, CHANGE);
+        attachInterrupt(RC_CHANNEL_PINS[YAW_CHANNEL], RC_Receiver::isr<YAW_CHANNEL>, CHANGE);
+        attachInterrupt(RC_CHANNEL_PINS[AUX0_CHANNEL], RC_Receiver::isr<AUX0_CHANNEL>, CHANGE);
+        attachInterrupt(RC_CHANNEL_PINS[AUX1_CHANNEL], RC_Receiver::isr<AUX1_CHANNEL>, CHANGE);
+    #else PPM_SIGNAL
+        attachInterrupt(PPM_INPUT_PIN, RC_Receiver::isr, RISING);
+    #endif
 }
 
 float RC_Channel::get_value() {
-    if (value > RC_IGNORE_MIN && value < RC_IGNORE_MAX)  {
-        return 0.5;
-    } else if (value < RC_IGNORE_MIN) {
-        return fmap(value, RC_MIN, RC_IGNORE_MIN, 0.0, 0.5);
-    } else {
-        return fmap(value, RC_IGNORE_MAX, RC_MAX, 0.5, 1.0);
-    }
+    return fmap(value, RC_MIN, RC_MAX, 0.0, 1.0);
 }

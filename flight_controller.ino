@@ -83,7 +83,7 @@ void update_motors() {
 }
 
 void loop() {
-    update_leds();
+    TASK(update_leds(), LED_UPDATE_RATE_HZ);
 
     if (!succesful_initialization) {
         return;
@@ -101,6 +101,7 @@ void loop() {
 
     if (!started_up && millis() - start_up_begin_ms > STARTUP_TIME_S * 1000 && aux0_channel->get_value() < 0.25) {
         started_up = true;
+        init_kinematics();
     }
 
     if (!started_up) {

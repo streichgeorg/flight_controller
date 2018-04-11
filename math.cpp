@@ -8,66 +8,80 @@ float fmap(float value, float a, float b, float c, float d) {
 }
 
 void vec3::add(vec3 other, vec3 &out) {
-    out = vec3(x + other.x, y + other.y, z + other.z);
+    out.x = this->x + other.x;
+    out.y = this->y + other.y;
+    out.z = this->z + other.z;
 }
 
-void vec3::add(vec3 other) {
-    x += other.x;
-    y += other.y;
-    z += other.z;
+vec3& vec3::operator+=(const vec3 &rhs) {
+    this->add(rhs, *this);
+    return *this;
 }
 
-vec3 vec3::radd(vec3 other) {
-    vec3 out; 
-    add(other, out);
+vec3 vec3::operator+(const vec3 &rhs) {
+    vec3 out;
+    this->add(rhs, out);
     return out;
 }
 
 void vec3::sub(vec3 other, vec3 &out) {
-    out = vec3(x - other.x, y - other.y, z - other.z);
+    out.x = this->x - other.x;
+    out.y = this->y - other.y;
+    out.z = this->z - other.z;
 }
 
-void vec3::sub(vec3 other) {
-    x -= other.x;
-    y -= other.y;
-    z -= other.z;
+vec3& vec3::operator-=(const vec3 &rhs) {
+    this->sub(rhs, *this);
+    return *this;
 }
 
-vec3 vec3::rsub(vec3 other) {
+vec3 vec3::operator-(const vec3 &rhs) {
     vec3 out;
-    sub(other, out);
+    this->sub(rhs, out);
     return out;
 }
 
 void vec3::mul(float p, vec3 &out) {
-    out = vec3(x * p, y * p, z * p);
+    out.x = this->x * p;
+    out.y = this->y * p;
+    out.z = this->z * p;
 }
 
-void vec3::mul(float p) {
-    x *= p;
-    y *= p;
-    z *= p;
+vec3& vec3::operator*=(float rhs) {
+    this->mul(rhs, *this);
+    return *this;
 }
 
-vec3 vec3::rmul(float p) {
+vec3 vec3::operator*(float rhs) {
     vec3 out;
-    mul(p, out);
+    this->mul(rhs, out);
+    return out;
+}
+
+void vec3::div(float p, vec3 &out) {
+    this->mul(1 / p, out);
+}
+
+vec3& vec3::operator/=(float rhs) {
+    this->div(rhs, *this);
+    return *this;
+}
+
+vec3 vec3::operator/(float rhs) {
+    vec3 out;
+    this->div(rhs, out);
     return out;
 }
 
 void vec3::reversed(vec3 &out) {
-    out = vec3(-x, -y, -z);
+    out.x = -x;
+    out.y = -y;
+    out.z = -z;
 }
 
-void vec3::reverse() {
-    x = -x;
-    y = -y;
-    z = -z;
-}
-
-vec3 vec3::rreversed() {
+vec3 vec3::operator-() {
     vec3 out;
-    reversed(out);
+    this->reversed(out);
     return out;
 }
 
@@ -76,14 +90,12 @@ float vec3::length() {
 }
 
 void vec3::cross(vec3 other, vec3 &out) {
-    out = vec3(
-        y * other.z - z * other.y,
-        z * other.x - x * other.z,
-        x * other.y - y * other.x
-    );
+    out.x = y * other.z - z * other.y;
+    out.y = z * other.x - x * other.z;
+    out.z = x * other.y - y * other.x;
 }
 
-vec3 vec3::rcross(vec3 other) {
+vec3 vec3::cross(vec3 other) {
     vec3 out;
     cross(other, out);
     return out;
@@ -98,18 +110,18 @@ void vec3::normalized(vec3 &out) {
     out = vec3(x / l, y / l, z / l);
 }
 
+vec3 vec3::normalized() {
+    vec3 out;
+    normalized(out);
+    return out;
+}
+
 void vec3::normalize() {
     float l = length();
 
     x /= l;
     y /= l;
     z /= l;
-}
-
-vec3 vec3::rnormalized() {
-    vec3 out;
-    normalized(out);
-    return out;
 }
 
 quat quat::from_axis_angle(float angle, vec3 axis) {
@@ -119,23 +131,6 @@ quat quat::from_axis_angle(float angle, vec3 axis) {
         axis.y * sin(angle / 2),
         axis.z * sin(angle / 2)
     );
-}
-
-void quat::mul(quat other, quat &out) {
-    out.q0 = q0 * other.q0 - q1 * other.q1 - q2 * other.q2 - q3 * other.q3;
-    out.q1 = q0 * other.q1 + q1 * other.q0 - q2 * other.q3 + q3 * other.q2;
-    out.q2 = q0 * other.q2 + q1 * other.q3 + q2 * other.q0 - q3 * other.q1;
-    out.q3 = q0 * other.q3 - q1 * other.q2 + q2 * other.q1 + q3 * other.q0;
-}
-
-void quat::mul(quat other) {
-    mul(other, *this);
-}
-
-quat quat::rmul(quat other) {
-    quat out;
-    mul(other, out);
-    return out;
 }
 
 void quat::normalized(quat &out) {
